@@ -1,0 +1,6 @@
+kraken
+fastapi>=0.115
+uvicorn[standard]>=0.34
+numpy>=1.26
+pillow
+scipy
