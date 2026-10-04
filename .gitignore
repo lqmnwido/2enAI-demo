@@ -19,6 +19,7 @@ data/media/
 data/media-state.json
 data/media-manifest.json
 data/voice-cache/
+data/logs/
 # Recreate downloaded third-party weights and keep licensed voice samples local.
 inference/models/*.mlmodel
 inference/models/.cache/

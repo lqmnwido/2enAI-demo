@@ -4,6 +4,24 @@ Portal Bahasa Melayu bermula dengan logo 3D, pemasangan robot AIMAN dan halaman 
 
 ## Buka projek
 
+Pada EndeavourOS dengan vLLM sedia ada, **tiada arahan `npm.local`**. Aktifkan persekitaran vLLM anda dahulu, kemudian gunakan:
+
+```bash
+sudo pacman -Syu --needed nodejs npm git curl uv
+git clone https://github.com/lqmnwido/2enAI-demo.git
+cd 2enAI-demo
+source /laluan/ke/persekitaran-vllm/bin/activate
+npm run local:install
+# Salin sampel suara berlesen ke inference/voice/aiman-voice-prompt.wav
+npm run local:dev
+```
+
+`local:install` memasang pakej Node, OCR dan Chatterbox dalam persekitaran berasingan, memasang Qwen ASR dalam persekitaran vLLM sedia ada, memuat turun checkpoint OCR dan membina frontend. `local:dev` menghidupkan ASR dahulu, kemudian chat vLLM, TTS, OCR, backend Express dan frontend Vite. Buka **http://127.0.0.1:5173**; Vite memproksi API dan kedua-dua WebSocket ke backend pada port 3001. `Ctrl+C` menghentikan proses yang dimulakan oleh arahan ini. Fail `.env` yang dijana menyimpan laluan persekitaran; semak `bash scripts/check-local.sh` jika ada servis yang tidak hidup. Klip salam dan pengesahan aduan tetap dijana di latar belakang pada permulaan pertama. Pelayan inferens semuanya terikat pada `127.0.0.1`.
+
+Jika EndeavourOS anda menggunakan Python sistem lebih baharu daripada 3.12, gunakan `uv python install 3.11`, kemudian `PYTHON_BIN="$(uv python find 3.11)" npm run local:install`. Anda masih perlu mengaktifkan persekitaran vLLM sedia ada sebelum arahan pemasangan.
+
+Untuk Windows/WSL atau apabila anda mahu mengurus inferens secara berasingan:
+
 ```powershell
 npm install
 npm run build
@@ -14,21 +32,21 @@ Buka `http://127.0.0.1:3001`. Untuk pembangunan, gunakan `npm run dev`. Fail `.e
 
 ### EndeavourOS / Linux dengan vLLM sudah dipasang
 
-Gunakan Node.js 20+, Python 3.11 atau 3.12, CUDA/NVIDIA yang sesuai dengan pemasangan vLLM anda dan sekurang-kurangnya ruang untuk berat Qwen, Chatterbox serta cermin arkib. `setup-linux.sh` **tidak memasang atau menggantikan vLLM**; ia membina web dan memasang OCR/TTS dalam dua persekitaran Python berasingan. Pada Arch/EndeavourOS yang menyediakan Python lebih baharu, pasang Python 3.11 melalui `uv python install 3.11` dan jalankan `PYTHON_BIN="$(uv python find 3.11)" bash scripts/setup-linux.sh`.
+Gunakan Node.js 20+, Python 3.11 atau 3.12, CUDA/NVIDIA yang sesuai dengan pemasangan vLLM anda dan sekurang-kurangnya ruang untuk berat Qwen, Chatterbox serta cermin arkib. `setup-linux.sh` **tidak memasang atau menggantikan vLLM**; ia membina web dan memasang OCR/TTS dalam dua persekitaran Python berasingan.
 
 ```bash
 git clone https://github.com/lqmnwido/2enAI-demo.git
 cd 2enAI-demo
-bash scripts/setup-linux.sh
+npm run local:install
 ```
 
-Aktifkan persekitaran vLLM sedia ada anda, kemudian pasang modul ASR ke **persekitaran itu**: `python -m pip install -r inference/requirements-asr.txt`. Isi `VLLM_BIN` dan `ASR_PYTHON` dalam `.env` dengan laluan mutlak bagi persekitaran tersebut. Skrip mula perkhidmatan membaca `.env` dan boleh dipanggil dari mana-mana direktori. Persekitaran OCR/TTS dijana sebagai `.venv-ocr` dan `.venv-tts` dalam projek. Periksa fail penting dengan `bash scripts/check-local.sh`.
+Pemasang memerlukan `vllm` pada `PATH` atau `VLLM_BIN` dalam `.env`; ia menyimpan `VLLM_BIN` dan `ASR_PYTHON` secara automatik dan menambah Qwen ASR dalam persekitaran tersebut jika belum ada. Skrip mula perkhidmatan membaca `.env` dan boleh dipanggil dari mana-mana direktori. Persekitaran OCR/TTS dijana sebagai `.venv-ocr` dan `.venv-tts` dalam projek. Periksa fail penting dengan `bash scripts/check-local.sh`.
 
 Repositori menyertakan kod, korpus teks kecil, model GLB, sumber Blender dan render. Berat model, muat turun media Arkib, cache, sampel suara pelakon serta klip suara terjana **tidak diterbitkan**. Pemasang memuat turun berat OCR Apache-2.0 daripada [model Jawi Kraken](https://huggingface.co/culturalheritagenus/Jawi-OCR-Kraken-v1/tree/main) ke `inference/models/`; tetapkan `SKIP_MODEL_DOWNLOAD=1` jika anda sudah menyalinnya secara manual. Salin sampel suara yang dibenarkan ke `inference/voice/aiman-voice-prompt.wav`. Muat turun model Qwen/Chatterbox pada penggunaan pertama; selepas itu cache Hugging Face setempat boleh digunakan dengan `HF_HUB_OFFLINE=1`. Untuk menyalin semula media Arkib pada peranti baharu, jalankan skrip import/cermin di bawah sekali semasa dalam talian. Sehingga salinan itu lengkap, petikan teks daripada `data/corpus.json` masih boleh dicari tetapi fail media setempat mungkin tiada.
 
-Dalam empat terminal, jalankan `bash inference/start-asr.sh`, tunggu `/health` pada port 8001 sedia, kemudian `bash inference/start-chat.sh`, `bash inference/start-tts.sh` dan `bash inference/start-vision.sh`. Dalam terminal kelima, jalankan `npm start`; buka `http://127.0.0.1:3001`. Port inferens terikat pada `127.0.0.1`; tetapan GPU dalam `.env` bermula dengan profil 6 GB dan mungkin perlu dilaras mengikut kad anda. Jalankan `npm test`, `npm run build`, dan ujian OCR imej sebenar sebelum digunakan untuk data penting.
+`npm run local:dev` mengurus turutan servis itu secara automatik. Jika menjalankannya secara manual, dalam empat terminal jalankan `bash inference/start-asr.sh`, tunggu `/health` pada port 8001 sedia, kemudian `bash inference/start-chat.sh`, `bash inference/start-tts.sh` dan `bash inference/start-vision.sh`. Dalam terminal kelima, jalankan `npm start`; buka `http://127.0.0.1:3001`. Port inferens terikat pada `127.0.0.1`; tetapan GPU dalam `.env` bermula dengan profil 6 GB dan mungkin perlu dilaras mengikut kad anda. Jalankan `npm test`, `npm run build`, dan ujian OCR imej sebenar sebelum digunakan untuk data penting.
 
-Selepas Chatterbox dan gateway sedia, jalankan `node scripts/generate-greeting.mjs` dan `node scripts/generate-analysis-cue.mjs` untuk menghasilkan dua klip tetap pada peranti itu. Skrip ini menggunakan suara rujukan setempat; fail suara tersebut sengaja tidak disertakan dalam repositori awam.
+`local:dev` menghasilkan dua klip tetap pada peranti itu di latar belakang jika belum ada. Untuk penjanaan manual selepas Chatterbox dan gateway sedia, jalankan `node scripts/generate-greeting.mjs` dan `node scripts/generate-analysis-cue.mjs`. Skrip ini menggunakan suara rujukan setempat; fail suara tersebut sengaja tidak disertakan dalam repositori awam.
 
 ## Perkhidmatan inferens tempatan
 
