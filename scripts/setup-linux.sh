@@ -44,6 +44,11 @@ fi
 "$PYTHON_BIN" -m venv .venv-tts
 .venv-tts/bin/python -m pip install --upgrade pip
 .venv-tts/bin/python -m pip install -r inference/requirements-tts.txt
+if [[ "${AIMAN_BLACKWELL:-0}" == 1 ]]; then
+  # Chatterbox 0.1.7 pins torch 2.6 (CUDA 12.4), which lacks RTX 50-series kernels.
+  .venv-tts/bin/python -m pip install --force-reinstall 'torch==2.7.1' 'torchaudio==2.7.1' \
+    --index-url https://download.pytorch.org/whl/cu128
+fi
 
 npm run build
 if [[ ! -s inference/models/real_plus_synth_200_best_250326.mlmodel && "${SKIP_MODEL_DOWNLOAD:-0}" != 1 ]]; then

@@ -26,6 +26,7 @@ inference/models/.cache/
 inference/models/*.tmp
 inference/voice/*.wav
 inference/voice/*.mp3
+inference/voice/*.tmp
 public/audio/*.wav
 inference/.*.pcm
 inference/.*.wav

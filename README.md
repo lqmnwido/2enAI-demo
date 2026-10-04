@@ -4,21 +4,22 @@ Portal Bahasa Melayu bermula dengan logo 3D, pemasangan robot AIMAN dan halaman 
 
 ## Buka projek
 
-Pada EndeavourOS dengan vLLM sedia ada, **tiada arahan `npm.local`**. Aktifkan persekitaran vLLM anda dahulu, kemudian gunakan:
+Pada EndeavourOS dengan NVIDIA RTX 5070 Laptop 8 GB, pasang pemacu NVIDIA melalui sistem anda dan pastikan `nvidia-smi` berfungsi. Selepas itu, pemasangan dan pelancaran masing-masing memerlukan satu skrip:
 
 ```bash
-sudo pacman -Syu --needed nodejs npm git curl uv
 git clone https://github.com/lqmnwido/2enAI-demo.git
 cd 2enAI-demo
-source /laluan/ke/persekitaran-vllm/bin/activate
-npm run local:install
-# Salin sampel suara berlesen ke inference/voice/aiman-voice-prompt.wav
-npm run local:dev
+./install.sh
+./serve.sh
 ```
 
-`local:install` memasang pakej Node, OCR dan Chatterbox dalam persekitaran berasingan, memasang Qwen ASR dalam persekitaran vLLM sedia ada, memuat turun checkpoint OCR dan membina frontend. `local:dev` menghidupkan ASR dahulu, kemudian chat vLLM, TTS, OCR, backend Express dan frontend Vite. Buka **http://127.0.0.1:5173**; Vite memproksi API dan kedua-dua WebSocket ke backend pada port 3001. `Ctrl+C` menghentikan proses yang dimulakan oleh arahan ini. Fail `.env` yang dijana menyimpan laluan persekitaran; semak `bash scripts/check-local.sh` jika ada servis yang tidak hidup. Klip salam dan pengesahan aduan tetap dijana di latar belakang pada permulaan pertama. Pelayan inferens semuanya terikat pada `127.0.0.1`.
+`install.sh` memasang Node, Python 3.11, FFmpeg, OCR, Chatterbox dan berat model. Ia menggunakan vLLM sedia ada jika ada pada `PATH`; jika tiada, ia memasang vLLM dalam `.venv-vllm`. Jika persekitaran vLLM anda tidak pada `PATH`, tetapkan `VLLM_BIN` kepada laluannya sebelum memasang. Skrip juga memuat turun sampel suara dialog yang dibenarkan pengguna daripada laman asal dan menjadikannya prompt suara setempat; tetapkan `AIMAN_VOICE_FILE` jika anda ingin menggunakan salinan sendiri. Pemasangan memerlukan Internet, ruang cakera untuk beberapa model dan kata laluan `sudo` untuk pakej sistem. Ia tidak memasang pemacu NVIDIA.
 
-Jika EndeavourOS anda menggunakan Python sistem lebih baharu daripada 3.12, gunakan `uv python install 3.11`, kemudian `PYTHON_BIN="$(uv python find 3.11)" npm run local:install`. Anda masih perlu mengaktifkan persekitaran vLLM sedia ada sebelum arahan pemasangan.
+Untuk RTX 5070, pemasang menguji CUDA pada vLLM dan Chatterbox, memasang PyTorch CUDA 12.8 untuk Chatterbox serta menetapkan perkongsian VRAM ASR 0.38 dan chat 0.34 jika `.env` masih menggunakan nilai asal 6 GB. Chatterbox kekal pada CPU ketika menunggu dan dipindahkan ke GPU untuk suara. Nilai ini ialah titik mula untuk 8 GB, bukan jaminan prestasi: ujian hujung ke hujung masih perlu dibuat pada komputer EndeavourOS sebenar. [vLLM menyatakan Blackwell memerlukan CUDA 12.8 atau lebih baharu](https://docs.vllm.ai/en/stable/getting_started/installation/gpu/); [Chatterbox 0.1.7 memin PyTorch 2.6](https://github.com/resemble-ai/chatterbox/blob/master/pyproject.toml), yang diganti dalam persekitaran TTS sahaja.
+
+`serve.sh` menghidupkan ASR dahulu, kemudian chat vLLM, TTS, OCR, backend Express dan frontend Vite. Buka **http://127.0.0.1:5173**; Vite memproksi API dan kedua-dua WebSocket ke backend pada port 3001. `Ctrl+C` menghentikan proses yang dimulakan oleh skrip ini. Fail `.env` menyimpan laluan persekitaran. Jalankan `bash scripts/check-local.sh` jika servis gagal hidup. Klip salam dan pengesahan aduan dijana di latar belakang pada permulaan pertama. Semua pelayan inferens terikat pada `127.0.0.1`.
+
+`npm run local:install` dan `npm run local:dev` kekal tersedia jika Node, Python, FFmpeg, sampel suara dan vLLM telah disediakan sendiri. Kedua-dua skrip akar projek di atas ialah laluan pemasangan penuh untuk EndeavourOS.
 
 Untuk Windows/WSL atau apabila anda mahu mengurus inferens secara berasingan:
 
@@ -30,17 +31,9 @@ npm start
 
 Buka `http://127.0.0.1:3001`. Untuk pembangunan, gunakan `npm run dev`. Fail `.env.example` menerangkan URL perkhidmatan tempatan. Teks carian, borang dan model 3D boleh digunakan sebelum semua perkhidmatan inferens dihidupkan; butang yang memerlukan model akan menunjukkan keadaan sambungan.
 
-### EndeavourOS / Linux dengan vLLM sudah dipasang
+### Pemasangan manual pada Linux lain
 
-Gunakan Node.js 20+, Python 3.11 atau 3.12, CUDA/NVIDIA yang sesuai dengan pemasangan vLLM anda dan sekurang-kurangnya ruang untuk berat Qwen, Chatterbox serta cermin arkib. `setup-linux.sh` **tidak memasang atau menggantikan vLLM**; ia membina web dan memasang OCR/TTS dalam dua persekitaran Python berasingan.
-
-```bash
-git clone https://github.com/lqmnwido/2enAI-demo.git
-cd 2enAI-demo
-npm run local:install
-```
-
-Pemasang memerlukan `vllm` pada `PATH` atau `VLLM_BIN` dalam `.env`; ia menyimpan `VLLM_BIN` dan `ASR_PYTHON` secara automatik dan menambah Qwen ASR dalam persekitaran tersebut jika belum ada. Skrip mula perkhidmatan membaca `.env` dan boleh dipanggil dari mana-mana direktori. Persekitaran OCR/TTS dijana sebagai `.venv-ocr` dan `.venv-tts` dalam projek. Periksa fail penting dengan `bash scripts/check-local.sh`.
+Untuk Linux selain EndeavourOS/Arch, sediakan Node.js 20+, Python 3.11 atau 3.12, FFmpeg, CUDA/NVIDIA dan vLLM sendiri. Kemudian jalankan `bash scripts/setup-linux.sh` serta `bash scripts/dev-local.sh`. Skrip penyediaan manual menggunakan vLLM sedia ada pada `PATH` atau `VLLM_BIN` dalam `.env`, tanpa menggantikannya. Persekitaran OCR/TTS dijana sebagai `.venv-ocr` dan `.venv-tts`. Periksa fail penting dengan `bash scripts/check-local.sh`.
 
 Repositori menyertakan kod, korpus teks kecil, model GLB, sumber Blender dan render. Berat model, muat turun media Arkib, cache, sampel suara pelakon serta klip suara terjana **tidak diterbitkan**. Pemasang memuat turun berat OCR Apache-2.0 daripada [model Jawi Kraken](https://huggingface.co/culturalheritagenus/Jawi-OCR-Kraken-v1/tree/main) ke `inference/models/`; tetapkan `SKIP_MODEL_DOWNLOAD=1` jika anda sudah menyalinnya secara manual. Salin sampel suara yang dibenarkan ke `inference/voice/aiman-voice-prompt.wav`. Muat turun model Qwen/Chatterbox pada penggunaan pertama; selepas itu cache Hugging Face setempat boleh digunakan dengan `HF_HUB_OFFLINE=1`. Untuk menyalin semula media Arkib pada peranti baharu, jalankan skrip import/cermin di bawah sekali semasa dalam talian. Sehingga salinan itu lengkap, petikan teks daripada `data/corpus.json` masih boleh dicari tetapi fail media setempat mungkin tiada.
 
