@@ -15,6 +15,11 @@ await mkdir(mediaDir,{recursive:true});
 const read=async(file,fallback)=>JSON.parse(await readFile(file,'utf8').catch(()=>JSON.stringify(fallback)));
 const corpus=await read(path.join(data,'corpus.json'),[]);
 const crawl=await read(path.join(data,'crawl-state.json'),{visited:[]});
+// Fresh clones contain the indexed corpus but not the crawler's local state.
+const indexedPages=[...new Set(corpus.map(doc=>doc.url).filter(url=>{
+ try{return new URL(url).origin===host;}catch{return false;}
+}))];
+const pages=crawl.visited.length?crawl.visited:indexedPages;
 const manifest=await read(manifestFile,{source:host+'/ms/',files:{},updatedAt:null});
 const state=await read(stateFile,{phase:'pdf',pageIndex:0,pending:[],seen:[],failures:[]});
 const seen=new Set(state.seen);
@@ -102,17 +107,17 @@ while(!stopping){
    try{await download(job);completed++;}
    catch(error){state.failures.push({url:job.url,error:error.message});if(/disk reserve/.test(error.message)){state.pending.unshift(job);stopping=true;}}
   }));
- }else if(state.pageIndex<crawl.visited.length){
+ }else if(state.pageIndex<pages.length){
   state.phase='discover';
-  const pages=crawl.visited.slice(state.pageIndex,state.pageIndex+4);
-  state.pageIndex+=pages.length;
-  await Promise.all(pages.map(async page=>{
+  const batch=pages.slice(state.pageIndex,state.pageIndex+4);
+  state.pageIndex+=batch.length;
+  await Promise.all(batch.map(async page=>{
    try{await discover(page);}catch(error){state.failures.push({url:page,error:error.message});}
   }));
  }else{state.phase='complete';break;}
  if(++batches%5===0||stopping)await save();
- if(completed>=lastLogged+50){lastLogged=completed;console.log(JSON.stringify({saved:Object.keys(manifest.files).length,pages:state.pageIndex,totalPages:crawl.visited.length,pending:state.pending.length,failures:state.failures.length}));}
+ if(completed>=lastLogged+50){lastLogged=completed;console.log(JSON.stringify({saved:Object.keys(manifest.files).length,pages:state.pageIndex,totalPages:pages.length,pending:state.pending.length,failures:state.failures.length}));}
  await new Promise(resolve=>setTimeout(resolve,100));
 }
 await save();
-console.log(JSON.stringify({phase:state.phase,saved:Object.keys(manifest.files).length,pages:state.pageIndex,totalPages:crawl.visited.length,pending:state.pending.length,failures:state.failures.length}));
+console.log(JSON.stringify({phase:state.phase,saved:Object.keys(manifest.files).length,pages:state.pageIndex,totalPages:pages.length,pending:state.pending.length,failures:state.failures.length}));

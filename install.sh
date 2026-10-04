@@ -98,5 +98,9 @@ model = ChatterboxMultilingualTTS.from_pretrained(device='cpu')
 print(f'Chatterbox cached at {model.sr} Hz', flush=True)
 PY
 
+echo 'Mirroring indexed public Arkib media to local storage (resumable; this may take a while)...'
+node scripts/mirror-arkib.mjs
+node -e 'const s=require("./data/media-state.json");if(s.phase!=="complete"){console.error("Arkib mirror paused (likely disk reserve). Free space and rerun ./install.sh to resume.");process.exit(1)};if(s.failures?.length)console.warn(`Arkib mirror completed with ${s.failures.length} download/discovery errors; inspect data/media-state.json.`)'
+
 bash scripts/check-local.sh
 echo 'Installation complete. Run ./serve.sh and open http://127.0.0.1:5173'
