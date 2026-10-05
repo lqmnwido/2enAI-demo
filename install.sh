@@ -67,15 +67,17 @@ PY
 fi
 
 mkdir -p inference/voice
-if [[ ! -s inference/voice/aiman-voice-prompt.wav ]]; then
+if [[ -n "${AIMAN_VOICE_FILE:-}" || ! -s inference/voice/aiman-voice-prompt.wav ]]; then
   voice_source="${AIMAN_VOICE_FILE:-}"
   if [[ -z "$voice_source" ]]; then
     voice_source="$PWD/inference/voice/aiman-dialogue-reference.mp3"
-    echo 'Downloading the authorized Dialogue 1 sample directly from Haikyo...'
-    curl --fail --location --retry 3 \
-      --output "$voice_source.tmp" 'https://haikyo.co.jp/audio/13195_1-B.mp3'
-    [[ $(wc -c < "$voice_source.tmp") -gt 100000 ]] || { echo 'Voice sample download was incomplete.' >&2; exit 1; }
-    mv "$voice_source.tmp" "$voice_source"
+    if [[ ! -s "$voice_source" ]]; then
+      echo 'Bundled voice reference is missing; downloading Dialogue 1 directly from Haikyo...'
+      curl --fail --location --retry 3 \
+        --output "$voice_source.tmp" 'https://haikyo.co.jp/audio/13195_1-B.mp3'
+      [[ $(wc -c < "$voice_source.tmp") -gt 100000 ]] || { echo 'Voice sample download was incomplete.' >&2; exit 1; }
+      mv "$voice_source.tmp" "$voice_source"
+    fi
   fi
   [[ -s "$voice_source" ]] || { echo "Voice sample not found: $voice_source" >&2; exit 1; }
   ffmpeg -nostdin -hide_banner -loglevel error -y -i "$voice_source" \

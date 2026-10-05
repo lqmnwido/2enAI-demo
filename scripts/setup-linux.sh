@@ -62,6 +62,6 @@ if [[ ! -s inference/models/real_plus_synth_200_best_250326.mlmodel && "${SKIP_M
 fi
 echo 'Web, OCR and TTS Python dependencies installed.'
 echo 'Qwen ASR uses the existing vLLM environment; its executable paths are saved in .env.'
-echo 'Place a licensed voice prompt at inference/voice/aiman-voice-prompt.wav.'
+echo 'Voice prompt is bundled at inference/voice/aiman-voice-prompt.wav.'
 echo 'The Apache-2.0 Jawi Kraken checkpoint is saved under inference/models/.'
 echo 'Then run npm run local:dev to start inference, backend and frontend together.'

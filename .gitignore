@@ -20,13 +20,15 @@ data/media-state.json
 data/media-manifest.json
 data/voice-cache/
 data/logs/
-# Recreate downloaded third-party weights and keep licensed voice samples local.
+# Recreate downloaded model weights; include only the approved actor reference below.
 inference/models/*.mlmodel
 inference/models/.cache/
 inference/models/*.tmp
 inference/voice/*.wav
 inference/voice/*.mp3
 inference/voice/*.tmp
+!inference/voice/aiman-dialogue-reference.mp3
+!inference/voice/aiman-voice-prompt.wav
 public/audio/*.wav
 inference/.*.pcm
 inference/.*.wav
